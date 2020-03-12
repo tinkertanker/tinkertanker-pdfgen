@@ -1,0 +1,11 @@
+*.pyc
+*.swp
+*.csv
+virtualenv
+node_modules
+build/
+ui/dist/
+dist/
+*.egg-info/
+*.egg
+.python-version
