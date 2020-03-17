@@ -23,4 +23,9 @@ setup(
         'PyPDF2==1.25.1',
         'reportlab==3.3.0'
     ],
+    entry_points={
+        'console_scripts': [
+            'tinkertanker_pdfgen = pdfgen.__main__:main'
+        ],
+    },
 )
