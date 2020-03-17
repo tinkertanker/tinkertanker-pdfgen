@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='tinkertanker-pdfgen',
-    version='0.0.1',
+    version='0.1.0',
     author='Eric Yulianto',
     author_email='eric@tinkertanker.com',
     description='Tinkertanker Simple PDF Generator',
@@ -20,9 +20,9 @@ setup(
     ],
     python_requires='>=3.5',
     install_requires=[
-        'PyPDF2==1.26.0',
-        'reportlab==3.5.34',
-        'Pillow==7.0.0'
+        'PyPDF2>=1.26.0,<1.27',
+        'reportlab>=3.5.34,<3.6',
+        'Pillow>=7.0.0,<7.1'
     ],
     entry_points={
         'console_scripts': [
