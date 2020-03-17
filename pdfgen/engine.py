@@ -6,8 +6,9 @@ import io
 import os
 
 # Third Party Library Imports
+import PIL
 import PyPDF2
-from reportlab.graphics import renderPDF
+from reportlab.graphics import renderPDF, renderPM, renderSVG
 from reportlab.graphics.barcode import code39
 from reportlab.graphics.barcode import qr
 from reportlab.graphics import shapes
@@ -40,10 +41,11 @@ class PdfGenerator(object):
     Size = collections.namedtuple('Size', ['width', 'height'])
 
     def __init__(self, template_path=None, layout_path=None,
-                 font_root_path=None):
+                 font_root_path=None, image_root_path=None):
         self.template_path = template_path
         self.layout_path = layout_path
         load_fonts(font_root_path)
+        self.image_root_path = image_root_path
 
     @property
     def template(self):
@@ -116,6 +118,10 @@ class PdfGenerator(object):
                     self._draw_bar(stripped_entry_string,
                                    overlay_canvas,
                                    draw_format)
+                elif draw_format.category == metadata.DrawFormat.CATEGORY_IMAGE:
+                    self._draw_image(stripped_entry_string,
+                                     overlay_canvas,
+                                     draw_format)
 
         overlay_canvas.save()
         overlay_packet.seek(0)
@@ -256,3 +262,28 @@ class PdfGenerator(object):
         y_pos -= 0.775 * units.cm
 
         barcode.drawOn(draw_canvas, x_pos, y_pos)
+
+    def _draw_image(self, content, draw_canvas, draw_format):
+        image = PIL.Image.open(self._image_named(content))
+        image_width, image_height = image.size
+
+        expected_height = draw_format.size * units.cm
+        expected_width = expected_height * image_width / image_height
+
+        x_pos = draw_format.offset * units.cm
+        y_pos = draw_format.position * units.cm
+        r_x_pos = draw_format.r_offset * units.cm
+
+        max_width = self.page_size.width - x_pos - r_x_pos
+
+        if expected_height > max_width:
+            width = max_width
+            height = max_width * image_height / image_width
+        else:
+            width = expected_width
+            height = expected_height
+
+        draw_canvas.drawImage(self._image_named(content), x_pos, y_pos, width=width, height=height)
+
+    def _image_named(self, image_name):
+        return os.path.join(self.image_root_path, image_name)

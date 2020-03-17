@@ -6,6 +6,7 @@ class DrawFormat(object):
     CATEGORY_TEXT = 'text'
     CATEGORY_QR = 'qr'
     CATEGORY_BAR = 'bar'
+    CATEGORY_IMAGE = 'image'
     # Alignment Constants
     ALIGNMENT_LEFT = 'left'
     ALIGNMENT_CENTER = 'center'
@@ -182,7 +183,8 @@ class DrawFormat(object):
     def valid_categories(cls):
         return [cls.CATEGORY_TEXT,
                 cls.CATEGORY_QR,
-                cls.CATEGORY_BAR]
+                cls.CATEGORY_BAR,
+                cls.CATEGORY_IMAGE]
 
     @classmethod
     def valid_alignments(cls):

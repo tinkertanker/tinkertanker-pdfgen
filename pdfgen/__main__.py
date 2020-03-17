@@ -17,6 +17,8 @@ def parse_arguments(args=None):
                                  help='path to the layout file (.json)')
     argument_parser.add_argument('-f', '--font-folder', metavar='folder', type=str,
                                  help='path to the font folder')
+    argument_parser.add_argument('-i', '--image-folder', metavar='folder', type=str,
+                                 help='path to the image folder')
     argument_parser.add_argument('-e', '--entries', nargs='*', metavar='text', type=str,
                                  help='inputs to be printed')
     argument_parser.add_argument('-k', '--keys', nargs='*', metavar='key', type=str,
@@ -44,12 +46,13 @@ def main():
     template_path = args.template
     layout_path = args.layout
     font_root_path = args.font_folder
+    image_root_path = args.image_folder
     entries = args.entries
     keys = args.keys
     output_file = args.output_file
 
     if len(args.entries) == len(args.keys):
-        pdf_generator = engine.PdfGenerator(template_path, layout_path, font_root_path)
+        pdf_generator = engine.PdfGenerator(template_path, layout_path, font_root_path, image_root_path)
         pdf_generator.generate([entries], [keys], output_file)
         logger.info('Generated at {output}'.format(output=output_file))
     else:

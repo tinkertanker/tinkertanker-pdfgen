@@ -20,8 +20,9 @@ setup(
     ],
     python_requires='>=3.5',
     install_requires=[
-        'PyPDF2==1.25.1',
-        'reportlab==3.3.0'
+        'PyPDF2==1.26.0',
+        'reportlab==3.5.34',
+        'Pillow==7.0.0'
     ],
     entry_points={
         'console_scripts': [
