@@ -8,12 +8,13 @@ import os
 # Third Party Library Imports
 import PIL
 import PyPDF2
-from reportlab.graphics import renderPDF, renderPM, renderSVG
+from reportlab.graphics import renderPDF
+from reportlab.graphics import shapes
 from reportlab.graphics.barcode import code39
 from reportlab.graphics.barcode import qr
-from reportlab.graphics import shapes
 from reportlab.lib import colors
 from reportlab.lib import units
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase import ttfonts
 from reportlab.pdfgen import canvas
@@ -283,7 +284,7 @@ class PdfGenerator(object):
             width = expected_width
             height = expected_height
 
-        draw_canvas.drawImage(self._image_named(content), x_pos, y_pos, width=width, height=height)
+        draw_canvas.drawImage(ImageReader(image), x_pos, y_pos, width=width, height=height)
 
     def _image_named(self, image_name):
         return os.path.join(self.image_root_path, image_name)
