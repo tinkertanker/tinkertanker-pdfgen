@@ -18,6 +18,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase import ttfonts
 from reportlab.pdfgen import canvas
+from svglib.svglib import svg2rlg
 
 # Local Imports
 from pdfgen import metadata
@@ -265,26 +266,53 @@ class PdfGenerator(object):
         barcode.drawOn(draw_canvas, x_pos, y_pos)
 
     def _draw_image(self, content, draw_canvas, draw_format):
-        image = PIL.Image.open(self._image_named(content))
-        image_width, image_height = image.size
+        if content.endswith('.png') or content.endswith('.jpg'):
+            image = PIL.Image.open(self._image_named(content))
+            image_width, image_height = image.size
 
-        expected_height = draw_format.size * units.cm
-        expected_width = expected_height * image_width / image_height
+            expected_height = draw_format.size * units.cm
+            expected_width = expected_height * image_width / image_height
 
-        x_pos = draw_format.offset * units.cm
-        y_pos = draw_format.position * units.cm
-        r_x_pos = draw_format.r_offset * units.cm
+            x_pos = draw_format.offset * units.cm
+            y_pos = draw_format.position * units.cm
+            r_x_pos = draw_format.r_offset * units.cm
 
-        max_width = self.page_size.width - x_pos - r_x_pos
+            max_width = self.page_size.width - x_pos - r_x_pos
 
-        if expected_width > max_width:
-            width = max_width
-            height = max_width * image_height / image_width
-        else:
-            width = expected_width
-            height = expected_height
+            if expected_width > max_width:
+                width = max_width
+                height = max_width * image_height / image_width
+            else:
+                width = expected_width
+                height = expected_height
 
-        draw_canvas.drawImage(ImageReader(image), x_pos, y_pos, width=width, height=height)
+            draw_canvas.drawImage(ImageReader(image), x_pos, y_pos, width=width, height=height)
+        elif content.endswith('.svg'):
+            image = svg2rlg(self._image_named(content))
+            image_width = image.minWidth()
+            image_height = image.height
+
+            expected_height = draw_format.size * units.cm
+            expected_width = expected_height * image_width / image_height
+
+            x_pos = draw_format.offset * units.cm
+            y_pos = draw_format.position * units.cm
+            r_x_pos = draw_format.r_offset * units.cm
+
+            max_width = self.page_size.width - x_pos - r_x_pos
+
+            if expected_width > max_width:
+                width = max_width
+                height = max_width * image_height / image_width
+            else:
+                width = expected_width
+                height = expected_height
+
+            image.width = width
+            image.height = height
+            image.scale(width / image_width, height / image_height)
+
+            renderPDF.draw(image, draw_canvas, x_pos, y_pos)
 
     def _image_named(self, image_name):
         return os.path.join(self.image_root_path, image_name)
