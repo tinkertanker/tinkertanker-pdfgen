@@ -9,4 +9,5 @@ dist/
 *.egg-info/
 *.egg
 .python-version
-sample/
+tests/pdfdiff/
+tests/tmp

@@ -1,0 +1,41 @@
+{
+    "affiliation": {
+        "category": "text",
+        "alignment": "left",
+        "offset": "0.8",
+        "position": "3.2",
+        "font": "AkkBd_Pro_1",
+        "size": "15",
+        "spacing": "0.5"
+    },
+    "name": {
+        "category": "text",
+        "alignment": "center",
+        "position": "2.8",
+        "font": "AkkLg_Pro_1",
+        "size": "14",
+        "spacing": "0.5"
+    },
+    "table": {
+        "category": "text",
+        "alignment": "right",
+        "offset": "0.8",
+        "position": "2.4",
+        "font": "AkkRg_Pro_1",
+        "size": "12",
+        "wrap": "equal",
+        "spacing": "0.5"
+    },
+    "code": {
+        "category": "qr",
+        "size": "2",
+        "offset": "6.2",
+        "position": "2.9"
+    },
+    "image": {
+        "category": "image",
+        "size": "1",
+        "offset": "0.6",
+        "position": "0.6"
+    }
+}

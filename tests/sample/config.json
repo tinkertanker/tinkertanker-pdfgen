@@ -1,0 +1,16 @@
+{
+    "group": [
+        "guest",
+        "speaker"
+    ],
+    "order": {
+        "front": [
+            "name",
+            "affiliation",
+            "table"
+        ],
+        "back": [
+            "code"
+        ]
+    }
+}
