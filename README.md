@@ -12,11 +12,11 @@ Allow generation of PDF files based on a given schema. Supports Python 3.5 and u
 
 Install using pip
 
-    pip install git+https://<your_username>@bitbucket.org/tinkertanker/tinkertanker-pdfgen.git@0.1.0
+    pip install git+https://<your_username>@github.com/tinkertanker/tinkertanker-pdfgen.git@0.1.0
 
 or
 
-    pip install git+ssh://git@bitbucket.org/tinkertanker/tinkertanker-pdfgen.git@0.1.0
+    pip install git+ssh://git@github.com/tinkertanker/tinkertanker-pdfgen.git@0.1.0
 
 ## Usage
 
@@ -153,8 +153,12 @@ Only TTF format is supported.
 
 Most bitmap graphics formats are supported. Currently vector graphics formats are not yet supported.
 
+## Testing
+
+To run the integration tests, you will need to have ImageMagick and Poppler installed. You may install them via Homebrew. At the moment, the integration tests can only be run in macOS. It is theoritically possible to run it in Linux, provided that the dependencies are available. But it is not yet tested.
+
 ## Help and Support
 
 This package is currently maintained by Eric Yulianto. If you find any issue, drop me a direct message to `@eric` at Tinkertanker Slack workspace.
 
-_Last Updated: 18 Mar 2020_
+_Last Updated: 19 Jun 2020_
