@@ -277,7 +277,7 @@ class PdfGenerator(object):
 
         max_width = self.page_size.width - x_pos - r_x_pos
 
-        if expected_height > max_width:
+        if expected_width > max_width:
             width = max_width
             height = max_width * image_height / image_width
         else:
