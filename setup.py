@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='tinkertanker-pdfgen',
-    version='0.1.0',
+    version='0.1.1',
     author='Eric Yulianto',
     author_email='eric@tinkertanker.com',
     description='Tinkertanker Simple PDF Generator',
