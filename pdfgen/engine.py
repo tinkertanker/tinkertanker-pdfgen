@@ -44,6 +44,8 @@ class PdfGenerator(object):
 
     def __init__(self, template_path=None, layout_path=None,
                  font_root_path=None, image_root_path=None):
+        self._template = None
+
         self.template_path = template_path
         self.layout_path = layout_path
         load_fonts(font_root_path)
@@ -51,7 +53,9 @@ class PdfGenerator(object):
 
     @property
     def template(self):
-        return PyPDF2.PdfFileReader(open(self.template_path, 'rb'))
+        if self._template is None:
+            self._template = PyPDF2.PdfFileReader(open(self.template_path, 'rb'))
+        return self._template
 
     @property
     def layout_path(self):
