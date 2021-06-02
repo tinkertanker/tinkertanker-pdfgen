@@ -5,7 +5,9 @@ import subprocess
 
 TEST_CASES = [
     ('tests/expected/1.pdf', ['Guest', 'Company', 'Table 1', 'sample', 'a.png'], 'tests/tmp/1.pdf', 'tests/pdfdiff/1'),
-    ('tests/expected/2.pdf', ['Person', 'Corporation', 'Table 2', 'example', 'b.jpg'], 'tests/tmp/2.pdf', 'tests/pdfdiff/2')
+    ('tests/expected/2.pdf', ['Person', 'Corporation', 'Table 2', 'example', 'b.jpg'], 'tests/tmp/2.pdf', 'tests/pdfdiff/2'),
+    ('tests/expected/3.pdf', ['Fan', 'Club', 'Row 3', 'group', 'c.pdf'], 'tests/tmp/3.pdf', 'tests/pdfdiff/3'),
+    ('tests/expected/4.pdf', ['Student', 'School', '4A', 'class', 'd.svg'], 'tests/tmp/4.pdf', 'tests/pdfdiff/4')
 ]
 
 def run_command(c):

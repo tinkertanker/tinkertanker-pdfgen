@@ -18,6 +18,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase import ttfonts
 from reportlab.pdfgen import canvas
+from svglib.svglib import svg2rlg
 
 # Local Imports
 from pdfgen import metadata
@@ -43,6 +44,8 @@ class PdfGenerator(object):
 
     def __init__(self, template_path=None, layout_path=None,
                  font_root_path=None, image_root_path=None):
+        self._template = None
+
         self.template_path = template_path
         self.layout_path = layout_path
         load_fonts(font_root_path)
@@ -50,7 +53,9 @@ class PdfGenerator(object):
 
     @property
     def template(self):
-        return PyPDF2.PdfFileReader(open(self.template_path, 'rb'))
+        if self._template is None:
+            self._template = PyPDF2.PdfFileReader(open(self.template_path, 'rb'))
+        return self._template
 
     @property
     def layout_path(self):
@@ -81,55 +86,52 @@ class PdfGenerator(object):
         pdf_output = PyPDF2.PdfFileWriter()
 
         for i, (page_entries, page_order) in enumerate(zip(entries, order)):
-            generated_overlay = self._draw_page_overlay(entries=page_entries,
-                                                        order=page_order)
+            generated_overlays = self._draw_page_overlays(entries=page_entries,
+                                                          order=page_order)
             try:
                 page_output = self.template.getPage(i)
             except IndexError:
                 page_output = self.template.getPage(0)
-            try:
-                page_overlay = generated_overlay.getPage(0)
-            except IndexError:
-                pass
-            else:
-                page_output.mergePage(page_overlay)
+
+            for generated_overlay in generated_overlays:
+                try:
+                    page_overlay = generated_overlay.getPage(0)
+                except IndexError:
+                    pass
+                else:
+                    page_output.mergePage(page_overlay)
+
             pdf_output.addPage(page_output)
 
         with open(filename, 'wb') as file_output_stream:
             pdf_output.write(file_output_stream)
 
-    def _draw_page_overlay(self, entries, order):
-        overlay_packet = io.BytesIO()
-        overlay_canvas = canvas.Canvas(overlay_packet,
-                                       pagesize=self.page_size)
+    def _draw_page_overlays(self, entries, order):
+        overlays = []
 
         for entry_key, entry_string in zip(order, entries):
             if entry_string and entry_string.strip():
                 stripped_entry_string = entry_string.strip()
                 draw_format = self.layout[entry_key]
                 if draw_format.category == metadata.DrawFormat.CATEGORY_TEXT:
-                    self._draw_text(stripped_entry_string,
-                                    overlay_canvas,
-                                    draw_format)
+                    overlays.append(self._draw_text(stripped_entry_string,
+                                                    draw_format))
                 elif draw_format.category == metadata.DrawFormat.CATEGORY_QR:
-                    self._draw_qr(stripped_entry_string,
-                                  overlay_canvas,
-                                  draw_format)
+                    overlays.append(self._draw_qr(stripped_entry_string,
+                                                  draw_format))
                 elif draw_format.category == metadata.DrawFormat.CATEGORY_BAR:
-                    self._draw_bar(stripped_entry_string,
-                                   overlay_canvas,
-                                   draw_format)
+                    overlays.append(self._draw_bar(stripped_entry_string,
+                                                   draw_format))
                 elif draw_format.category == metadata.DrawFormat.CATEGORY_IMAGE:
-                    self._draw_image(stripped_entry_string,
-                                     overlay_canvas,
-                                     draw_format)
+                    overlays.append(self._draw_image(stripped_entry_string,
+                                                     draw_format))
 
-        overlay_canvas.save()
-        overlay_packet.seek(0)
-        overlay = PyPDF2.PdfFileReader(overlay_packet)
-        return overlay
+        return overlays
 
-    def _draw_text(self, content, draw_canvas, draw_format):
+    def _draw_text(self, content, draw_format):
+        draw_buffer = io.BytesIO();
+        draw_canvas = canvas.Canvas(draw_buffer, pagesize=self.page_size)
+
         font_name = draw_format.font
         font_size = draw_format.size
         draw_canvas.setFont(font_name, font_size)
@@ -213,7 +215,14 @@ class PdfGenerator(object):
                 x_pos = page_width - x_offset - bottom_width
                 draw_canvas.drawString(x_pos, y_pos - spacing, bottom)
 
-    def _draw_qr(self, content, draw_canvas, draw_format):
+        draw_canvas.save()
+        draw_buffer.seek(0)
+        return PyPDF2.PdfFileReader(draw_buffer)
+
+    def _draw_qr(self, content, draw_format):
+        draw_buffer = io.BytesIO();
+        draw_canvas = canvas.Canvas(draw_buffer, pagesize=self.page_size)
+
         qr_color = colors.black
         if draw_format.cmyk_color is not None:
             c, m, y, k = draw_format.cmyk_color
@@ -239,7 +248,14 @@ class PdfGenerator(object):
         draw_canvas.setFillColor(colors.blue)
         renderPDF.draw(d, draw_canvas, x_pos, y_pos)
 
-    def _draw_bar(self, content, draw_canvas, draw_format):
+        draw_canvas.save()
+        draw_buffer.seek(0)
+        return PyPDF2.PdfFileReader(draw_buffer)
+
+    def _draw_bar(self, content, draw_format):
+        draw_buffer = io.BytesIO();
+        draw_canvas = canvas.Canvas(draw_buffer, pagesize=self.page_size)
+
         font_name = draw_format.font
         font_size = draw_format.size
         draw_canvas.setFont(font_name, font_size)
@@ -264,27 +280,99 @@ class PdfGenerator(object):
 
         barcode.drawOn(draw_canvas, x_pos, y_pos)
 
-    def _draw_image(self, content, draw_canvas, draw_format):
-        image = PIL.Image.open(self._image_named(content))
-        image_width, image_height = image.size
+        draw_canvas.save()
+        draw_buffer.seek(0)
+        return PyPDF2.PdfFileReader(draw_buffer)
 
-        expected_height = draw_format.size * units.cm
-        expected_width = expected_height * image_width / image_height
+    def _draw_image(self, content, draw_format):
+        draw_buffer = io.BytesIO();
 
-        x_pos = draw_format.offset * units.cm
-        y_pos = draw_format.position * units.cm
-        r_x_pos = draw_format.r_offset * units.cm
+        if content.endswith('.svg'):
+            draw_canvas = canvas.Canvas(draw_buffer, pagesize=self.page_size)
 
-        max_width = self.page_size.width - x_pos - r_x_pos
+            image = svg2rlg(self._image_named(content))
+            image_width = image.minWidth()
+            image_height = image.height
 
-        if expected_width > max_width:
-            width = max_width
-            height = max_width * image_height / image_width
+            expected_height = draw_format.size * units.cm
+            expected_width = expected_height * image_width / image_height
+
+            x_pos = draw_format.offset * units.cm
+            y_pos = draw_format.position * units.cm
+            r_x_pos = draw_format.r_offset * units.cm
+
+            max_width = self.page_size.width - x_pos - r_x_pos
+
+            if expected_width > max_width:
+                width = max_width
+                height = max_width * image_height / image_width
+            else:
+                width = expected_width
+                height = expected_height
+
+            image.width = width
+            image.height = height
+            image.scale(width / image_width, height / image_height)
+
+            renderPDF.draw(image, draw_canvas, x_pos, y_pos)
+            draw_canvas.save()
+        elif content.endswith('.pdf'):
+            image = PyPDF2.PdfFileReader(self._image_named(content))
+            image_page = image.getPage(0)
+            image_width = float(image_page.mediaBox[2])
+            image_height = float(image_page.mediaBox[3])
+
+            expected_height = draw_format.size * units.cm
+            expected_width = expected_height * image_width / image_height
+
+            x_pos = draw_format.offset * units.cm
+            y_pos = draw_format.position * units.cm
+            r_x_pos = draw_format.r_offset * units.cm
+
+            max_width = self.page_size.width - x_pos - r_x_pos
+
+            if expected_width > max_width:
+                width = max_width
+                height = max_width * image_height / image_width
+            else:
+                width = expected_width
+                height = expected_height
+
+            image_page.scaleTo(width=width, height=height)
+
+            pdf_writer = PyPDF2.PdfFileWriter()
+            pdf_writer.addBlankPage(width=self.page_size.width, height=self.page_size.height)
+
+            page = pdf_writer.getPage(0)
+            page.mergeTranslatedPage(image_page, x_pos, y_pos)
+            pdf_writer.write(draw_buffer)
         else:
-            width = expected_width
-            height = expected_height
+            draw_canvas = canvas.Canvas(draw_buffer, pagesize=self.page_size)
 
-        draw_canvas.drawImage(ImageReader(image), x_pos, y_pos, width=width, height=height)
+            image = PIL.Image.open(self._image_named(content))
+            image_width, image_height = image.size
+
+            expected_height = draw_format.size * units.cm
+            expected_width = expected_height * image_width / image_height
+
+            x_pos = draw_format.offset * units.cm
+            y_pos = draw_format.position * units.cm
+            r_x_pos = draw_format.r_offset * units.cm
+
+            max_width = self.page_size.width - x_pos - r_x_pos
+
+            if expected_width > max_width:
+                width = max_width
+                height = max_width * image_height / image_width
+            else:
+                width = expected_width
+                height = expected_height
+
+            draw_canvas.drawImage(ImageReader(image), x_pos, y_pos, width=width, height=height)
+            draw_canvas.save()
+
+        draw_buffer.seek(0)
+        return PyPDF2.PdfFileReader(draw_buffer)
 
     def _image_named(self, image_name):
         return os.path.join(self.image_root_path, image_name)

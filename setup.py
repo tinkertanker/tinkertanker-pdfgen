@@ -22,7 +22,8 @@ setup(
     install_requires=[
         'PyPDF2>=1.26.0,<1.27',
         'reportlab>=3.5.34,<3.6',
-        'Pillow>=7.0.0,<7.1'
+        'Pillow>=7.0.0,<7.1',
+        'svglib>=1.0.0,<1.1'
     ],
     entry_points={
         'console_scripts': [

@@ -151,7 +151,7 @@ Only TTF format is supported.
 
 ## Image Support
 
-Most bitmap graphics formats are supported. Currently vector graphics formats are not yet supported.
+Most raster graphics formats are supported. PDF and SVG vector formats are also supported.
 
 ## Testing
 
